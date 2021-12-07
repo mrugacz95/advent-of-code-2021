@@ -1,17 +1,17 @@
 enum class Direction { FORWARD, DOWN, UP }
 data class Command(val direction: Direction, val units: Int)
 
-fun parseInput(input: List<String>) = input
-    .map { it.split(" ") }
-    .map { (cmd, unit) ->
-        Command(Direction.valueOf(cmd.uppercase()), unit.toInt())
-    }
-
 fun main() {
+    fun parseInput(input: List<String>) = input
+        .map { it.split(" ") }
+        .map { (cmd, unit) ->
+            Command(Direction.valueOf(cmd.uppercase()), unit.toInt())
+        }
+
     fun part1(input: List<Command>): Int {
         var horizontal = 0
         var depth = 0
-        for(command in input){
+        for (command in input) {
             with(command) {
                 when (direction) {
                     Direction.FORWARD -> horizontal += units
@@ -27,7 +27,7 @@ fun main() {
         var horizontal = 0
         var depth = 0
         var aim = 0
-        for(command in input){
+        for (command in input) {
             with(command) {
                 when (direction) {
                     Direction.FORWARD -> {
