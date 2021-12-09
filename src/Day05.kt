@@ -1,4 +1,3 @@
-typealias Point = Pair<Int, Int>
 typealias Tunnel = Pair<Point, Point>
 
 fun Tunnel.diagonal(): Boolean {

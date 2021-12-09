@@ -24,3 +24,4 @@ infix fun Int.toward(to: Int): IntProgression {
     return IntProgression.fromClosedRange(this, to, step)
 }
 
+typealias Point = Pair<Int, Int>
