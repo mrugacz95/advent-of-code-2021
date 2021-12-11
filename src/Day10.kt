@@ -73,11 +73,11 @@ fun main() {
 
     val dayId = "10"
     // test if implementation meets criteria from the description, like:
-    val testInput = parseInput(readInput("Day${dayId}_test").toList())
+    val testInput = parseInput(readInput("Day${dayId}_test"))
     check(part1(testInput) == 26397)
     check(part2(testInput) == 288957L)
 
-    val input = parseInput(readInput("Day${dayId}").toList())
+    val input = parseInput(readInput("Day${dayId}"))
     println(part1(input))
     println(part2(input))
 }

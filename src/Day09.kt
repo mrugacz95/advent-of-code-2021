@@ -5,16 +5,7 @@ fun main() {
         return input.map { row -> row.toList().map { Character.getNumericValue(it) } }
     }
 
-    fun getNeighbours(y: Int, x: Int, width: Int, height: Int): MutableList<Point> {
-        val neighbours = mutableListOf<Point>()
-        for ((dy, dx) in listOf(Pair(-1, 0), Pair(1, 0), Pair(0, -1), Pair(0, 1))) {
-            if (y + dy < 0 || y + dy == height || x + dx < 0 || x + dx == width) {
-                continue
-            }
-            neighbours.add(Point(y + dy, x + dx))
-        }
-        return neighbours
-    }
+    val adjacent = listOf(Pair(-1, 0), Pair(1, 0), Pair(0, -1), Pair(0, 1))
 
     fun findLowerPoints(heightmap: List<List<Int>>): List<Point> {
         val lowerPoints = mutableListOf<Point>()
@@ -23,7 +14,7 @@ fun main() {
         for (y in 0 until height) {
             for (x in 0 until width) {
                 var isLowPoint = true
-                for ((ny, nx) in getNeighbours(y, x, width, height)) {
+                for ((ny, nx) in getNeighbours(y, x, width, height, adjacent)) {
                     if (heightmap[ny][nx] <= heightmap[y][x]) {
                         isLowPoint = false
                     }
@@ -50,7 +41,7 @@ fun main() {
                     continue
                 }
                 visited.add(current)
-                for ((ny, nx) in getNeighbours(current.first, current.second, width, height)) {
+                for ((ny, nx) in getNeighbours(current.first, current.second, width, height, adjacent)) {
                     if (heightmap[ny][nx] != 9) {
                         queue.add(Point(ny, nx))
                     }
