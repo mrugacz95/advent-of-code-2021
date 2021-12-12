@@ -1,5 +1,3 @@
-import kotlin.math.log
-
 typealias Edge = Pair<String, String>
 
 fun String.isLowerCase() = this.all { it.isLowerCase() }
@@ -40,7 +38,6 @@ class Graph(private val logging: Boolean = false) {
 }
 
 fun main() {
-
     fun parseInput(input: List<String>): Graph {
         val edges = input.map { it.split("-") }.map { (u, v) -> Edge(u, v) }
         val graph = Graph()
@@ -50,22 +47,17 @@ fun main() {
         return graph
     }
 
-    fun part1(input: Graph): Int {
-        return input.dfs("start", mutableMapOf()) { curr, vis ->
-            vis.getOrDefault(curr, 0) == 0
-        }
+    fun part1(input: Graph): Int = input.dfs("start", mutableMapOf()) { curr, vis ->
+        vis.getOrDefault(curr, 0) == 0
     }
 
-    fun part2(input: Graph): Int {
-        val a = input.dfs("start", mutableMapOf()) { curr, vis ->
-            val visitedTwice = vis.filter { it.key.isLowerCase() && it.value == 2 }.keys.singleOrNull()
-            if (visitedTwice == null && curr != "start") {
-                true // can visit any node second time
-            } else {
-                vis.getOrDefault(curr, 0) == 0
-            }
+    fun part2(input: Graph): Int = input.dfs("start", mutableMapOf()) { curr, vis ->
+        val visitedTwice = vis.filter { it.key.isLowerCase() && it.value == 2 }.keys.singleOrNull()
+        if (visitedTwice == null && curr != "start") {
+            true // can visit any node second time
+        } else {
+            vis.getOrDefault(curr, 0) == 0
         }
-        return a
     }
 
     val dayId = "12"
