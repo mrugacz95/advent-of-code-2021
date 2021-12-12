@@ -1,8 +1,10 @@
+import kotlin.math.log
+
 typealias Edge = Pair<String, String>
 
 fun String.isLowerCase() = this.all { it.isLowerCase() }
 
-class Graph {
+class Graph(private val logging: Boolean = false) {
 
     private val adjacencyList = mutableMapOf<String, MutableList<String>>()
 
@@ -19,7 +21,9 @@ class Graph {
     ): Int {
         val edges = adjacencyList[current] ?: error("Node \"$current\" not found in graph")
         if (current == "end") {
-            println((visitedInOrder + listOf("end")).joinToString(","))
+            if (logging) {
+                println((visitedInOrder + listOf(current)).joinToString(","))
+            }
             return 1
         }
         if (current.isLowerCase() && !enterCondition(current, visited)) {
