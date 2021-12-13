@@ -21,12 +21,10 @@ private data class TransparentPaper(private val points: List<Point>, private val
     fun keepFolding() = folds.isNotEmpty()
 
     fun foldPaper() {
-        fun getDimensionsAfterFolding(fold: Fold): Pair<Int, Int> {
-            return if (fold.horizontal) {
-                Pair(maxOf(height - fold.lineNum - 1, fold.lineNum), width)
-            } else {
-                Pair(height, maxOf(width - fold.lineNum - 1, fold.lineNum))
-            }
+        fun getDimensionsAfterFolding(fold: Fold): Pair<Int, Int> = if (fold.horizontal) {
+            Pair(height / 2, width)
+        } else {
+            Pair(height, width / 2)
         }
 
         fun getPointToBeFilled(y: Int, x: Int, fold: Fold): Point? {
