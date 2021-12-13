@@ -1,7 +1,7 @@
 typealias Tunnel = Pair<Point, Point>
 
-fun Tunnel.diagonal(): Boolean {
-    return this.first.first != this.second.first && this.first.second != this.second.second
+private fun Tunnel.diagonal(): Boolean {
+    return this.first.y != this.second.y && this.first.x != this.second.x
 }
 
 fun main() {
@@ -19,9 +19,9 @@ fun main() {
         .filter { !it.diagonal() }
         .flatMap {
             val points = mutableListOf<Point>()
-            for (x in it.first.first toward it.second.first) {
-                for (y in it.first.second toward it.second.second) {
-                    points.add(Pair(x, y))
+            for (x in it.first.x toward it.second.x) {
+                for (y in it.first.y toward it.second.y) {
+                    points.add(Point(x = x, y = y))
                 }
             }
             points
@@ -36,17 +36,17 @@ fun main() {
             val points = mutableListOf<Point>()
             val generationMethod: (IntProgression, IntProgression) -> List<Point> = { xRange, yRange ->
                 if (it.diagonal()) {
-                    xRange.zip(yRange)
+                    xRange.zip(yRange).map { p -> p.toPoint() }
                 } else {
-                    xRange.cartesianProduct(yRange)
+                    xRange.cartesianProduct(yRange).map { p -> p.toPoint() }
                 }
             }
             val tunnelPoints = generationMethod(
-                (it.first.first toward it.second.first),
-                (it.first.second toward it.second.second)
+                (it.first.x toward it.second.x),
+                (it.first.y toward it.second.y)
             )
             for ((x, y) in tunnelPoints) {
-                points.add(Pair(x, y))
+                points.add(Point(x = x, y = y))
             }
             points
         }

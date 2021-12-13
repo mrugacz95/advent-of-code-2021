@@ -24,9 +24,10 @@ infix fun Int.toward(to: Int): IntProgression {
     return IntProgression.fromClosedRange(this, to, step)
 }
 
-typealias Point = Pair<Int, Int>
+fun Pair<Int, Int>.toPoint() = Point(first, second)
+data class Point(val y: Int, val x: Int)
 
-fun getNeighbours(y: Int, x: Int, width: Int, height: Int, adjacent: List<Pair<Int,Int>>): MutableList<Point> {
+fun getNeighbours(y: Int, x: Int, width: Int, height: Int, adjacent: List<Pair<Int, Int>>): MutableList<Point> {
     val neighbours = mutableListOf<Point>()
     for ((dy, dx) in adjacent) {
         if (y + dy < 0 || y + dy == height || x + dx < 0 || x + dx == width) {

@@ -41,7 +41,7 @@ fun main() {
                     continue
                 }
                 visited.add(current)
-                for ((ny, nx) in getNeighbours(current.first, current.second, width, height, adjacent)) {
+                for ((ny, nx) in getNeighbours(current.y, current.x, width, height, adjacent)) {
                     if (heightmap[ny][nx] != 9) {
                         queue.add(Point(ny, nx))
                     }
@@ -53,7 +53,7 @@ fun main() {
     }
 
     fun part1(input: List<List<Int>>): Int {
-        return findLowerPoints(input).sumOf { input[it.first][it.second] + 1 }
+        return findLowerPoints(input).sumOf { input[it.y][it.x] + 1 }
     }
 
     fun part2(input: List<List<Int>>): Int {
