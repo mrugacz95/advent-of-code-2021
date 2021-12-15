@@ -25,7 +25,11 @@ infix fun Int.toward(to: Int): IntProgression {
 }
 
 fun Pair<Int, Int>.toPoint() = Point(first, second)
-data class Point(val y: Int, val x: Int)
+data class Point(val y: Int, val x: Int) {
+    companion object {
+        val ZERO = Point(0, 0)
+    }
+}
 
 fun getNeighbours(y: Int, x: Int, width: Int, height: Int, adjacent: List<Pair<Int, Int>>): MutableList<Point> {
     val neighbours = mutableListOf<Point>()
