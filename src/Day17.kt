@@ -43,7 +43,7 @@ fun main() {
         val minXVelocity = floor(sqrt(2.0 * area.x.first)).toInt() - 1
         val maxXVelocity = ceil(sqrt(2.0 * area.x.first)).toInt() + 1
         for (x in minXVelocity..maxXVelocity) {
-            for (y in 0..2000) {
+            for (y in area.y.first until -area.y.first) {
                 val result = simulateProbe(Point(y, x), area)
                 if (result != null) {
                     maxYPos = maxOf(result.maxYPos, maxYPos ?: Int.MIN_VALUE)
@@ -56,7 +56,7 @@ fun main() {
     fun part2(area: Area): MutableSet<Point> {
         val distinctVelocities = mutableSetOf<Point>()
         for (x in 0..area.x.last) {
-            for (y in area.y.first..2000) {
+            for (y in area.y.first until -area.y.first) {
                 val result = simulateProbe(Point(y, x), area)
                 if (result != null) {
                     distinctVelocities.add(Point(y, x))
