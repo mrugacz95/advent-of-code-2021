@@ -29,6 +29,10 @@ data class Point(val y: Int, val x: Int) {
     companion object {
         val ZERO = Point(0, 0)
     }
+
+    operator fun plus(other: Point): Point {
+        return Point(y + other.y, x + other.x)
+    }
 }
 
 fun getNeighbours(y: Int, x: Int, width: Int, height: Int, adjacent: List<Pair<Int, Int>>): MutableList<Point> {
