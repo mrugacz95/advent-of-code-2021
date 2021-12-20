@@ -195,8 +195,8 @@ data class Scanner(val report: ScannerReport, var position: Point3d? = null, var
         require(this.position != null)
         require(other.orientation == null)
         require(other.position == null)
-        for (point1 in this.report.points) {
-            for (point2 in other.report.points) {
+        for (point1 in this.report.points.drop(requiredOverlappingBeacons - 1)) {
+            for (point2 in other.report.points.drop(requiredOverlappingBeacons - 1)) {
                 for (newOrientation in Orientation.ALL) {
                     val newPos = this.position!! + point1.orientate(this.orientation!!) - point2.orientate(newOrientation)
                     val newScanner = other.withPosition(newPos).withOrientation(newOrientation)
