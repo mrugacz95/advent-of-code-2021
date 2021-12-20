@@ -68,7 +68,7 @@ fun main() {
         return InfiniteImage(content = output, area = Area.fromPoints(output), outerValue = outer)
     }
 
-    fun simualte(input: ScannerResponse, steps: Int): Int {
+    fun simulate(input: ScannerResponse, steps: Int): Int {
         var image = input.image
         for (step in 0 until steps) {
             image = step(input.iea, image)
@@ -80,9 +80,9 @@ fun main() {
 
     // test if implementation meets criteria from the description, like:
     val testInput = parseInput(readInput("Day${dayId}_test"))
-    check(simualte(testInput, 2) == 35)
+    check(simulate(testInput, 2) == 35)
 
     val input = parseInput(readInput("Day${dayId}"))
-    println(simualte(input, 2))
-    println(simualte(input, 50))
+    println(simulate(input, 2))
+    println(simulate(input, 50))
 }
