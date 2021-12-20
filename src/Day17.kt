@@ -2,12 +2,6 @@ import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.sqrt
 
-private data class Area(val x: IntRange, val y: IntRange) {
-    operator fun contains(p: Point): Boolean {
-        return p.x in x && p.y in y
-    }
-}
-
 private data class SimulationData(val maxYPos: Int)
 
 fun main() {

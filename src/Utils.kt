@@ -45,3 +45,19 @@ fun getNeighbours(y: Int, x: Int, width: Int, height: Int, adjacent: List<Pair<I
     }
     return neighbours
 }
+
+data class Area(val x: IntRange, val y: IntRange) {
+    operator fun contains(p: Point): Boolean {
+        return p.x in x && p.y in y
+    }
+
+    companion object {
+        fun fromPoints(image: Collection<Point>): Area {
+            val minY = image.minOf { it.y }
+            val maxY = image.maxOf { it.y }
+            val minX = image.minOf { it.x }
+            val maxX = image.maxOf { it.x }
+            return Area(minX..maxX, minY..maxY)
+        }
+    }
+}
