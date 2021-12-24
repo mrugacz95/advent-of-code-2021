@@ -1,6 +1,7 @@
 import java.io.File
 import java.math.BigInteger
 import java.security.MessageDigest
+import kotlin.math.abs
 
 /**
  * Reads lines from the given input txt file.
@@ -33,6 +34,10 @@ data class Point(val y: Int, val x: Int) {
     operator fun plus(other: Point): Point {
         return Point(y + other.y, x + other.x)
     }
+
+    fun manhattanDistance(other: Point): Int {
+        return abs(x - other.x) + abs(y - other.y)
+    }
 }
 
 fun getNeighbours(y: Int, x: Int, width: Int, height: Int, adjacent: List<Pair<Int, Int>>): MutableList<Point> {
@@ -61,3 +66,5 @@ data class Area(val x: IntRange, val y: IntRange) {
         }
     }
 }
+
+data class WeightedEdge(val end: Point, val weight: Int)

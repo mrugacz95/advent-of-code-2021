@@ -1,7 +1,5 @@
 import java.util.PriorityQueue
 
-private data class WeightedEdge(val end: Point, val weight: Int)
-
 private class RiskMap(val rawMap: List<List<Int>>) {
     val nodes = mutableMapOf<Point, MutableList<WeightedEdge>>().withDefault { mutableListOf() }
     val width = rawMap.size
