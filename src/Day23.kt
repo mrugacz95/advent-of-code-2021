@@ -1,5 +1,7 @@
 import java.util.Stack
 
+private const val LOG = false
+
 typealias AmpsState = Map<Point, String>
 
 private fun String.cost() = mapOf(
@@ -60,21 +62,27 @@ fun main() {
 
     fun areOrganized(amps: AmpsState): Boolean {
         for ((pos, a) in amps) {
-            if (a.col() != pos.x) {
+            if (pos.y == 1 || a.col() != pos.x) {
                 return false
             }
         }
         return true
     }
 
-    fun printState(amps: AmpsState): String {
-        val board = mutableListOf(
+    fun printState(amps: AmpsState, graph: Map<Point, MutableList<WeightedEdge>>): String {
+        val height = graph.keys.maxOf { it.y } - 1
+        val inner = mutableListOf<MutableList<Char>>()
+        for (repeat in 0 until height - 2) {
+            inner.add("  #.#.#.#.#".toMutableList())
+        }
+        val board = listOf(
             "#############".toMutableList(),
             "#...........#".toMutableList(),
-            "###.#.#.#.###".toMutableList(),
-            "  #.#.#.#.#".toMutableList(),
+            "###.#.#.#.###".toMutableList()
+        ) + inner + listOf(
             "  #########".toMutableList()
         )
+
         for ((pos, a) in amps) {
             val toPrint = if (a[1] == '1') a.lowercase()[0] else a[0]
             board[pos.y][pos.x] = toPrint
@@ -82,22 +90,23 @@ fun main() {
         return board.joinToString("\n") { it.joinToString("") } + "\n"
     }
 
-    fun simulate(burrow: Burrow, log: Boolean = false): Pair<Int, List<AmpsState>> {
+    fun simulate(burrow: Burrow): Pair<Int, List<AmpsState>> {
         val stateVisited = mutableMapOf<AmpsState, Int>()
         var globMinCost = Int.MAX_VALUE
         var globHistory = emptyList<AmpsState>()
 
         fun step(graph: Map<Point, MutableList<WeightedEdge>>, amps: AmpsState, currentCost: Int, history: List<AmpsState>): Int {
-            if (log) {
-                println(printState(amps))
-            }
-            if (currentCost >= globMinCost) {
-                return Int.MAX_VALUE
+            val height = graph.keys.maxOf { it.y }
+            if (LOG) {
+                println(printState(amps, graph))
             }
             if (areOrganized(amps)) {
                 globHistory = history
                 globMinCost = minOf(globMinCost, currentCost)
                 return 0
+            }
+            if (currentCost >= globMinCost) {
+                return Int.MAX_VALUE
             }
             if (amps in stateVisited.keys) return stateVisited[amps]!!
             var minCost = Int.MAX_VALUE
@@ -121,25 +130,33 @@ fun main() {
                     }
                 }
                 // remove stupid moves
-                val goodMoves = mutableSetOf<Point>()
+                var goodMoves = mutableSetOf<Point>()
                 for (target in allMoves) {
                     if (pos == target) continue // don't stay in place
                     if (pos.y == 1 && target.y == 1) continue // don't wander in hallway
-                    if (target.y > 1 && target.x != amp.col()) continue // don't go into someone's house
-                    if (target.y == 2 && amps[Point(
-                            3,
-                            target.x
-                        )]?.type() != amp.type()
+                    if (target.y >= 2 && target.x != amp.col()) continue // don't go into someone's house
+                    if (target.y >= 2 &&
+                        ((target.y + 1)..height).map { Point(it, target.x) }.any { it !in amps }
+                    ) continue // don't stop in first room, go further if possible
+                    if (target.y >= 2 &&
+                        ((target.y + 1)..height).map { Point(it, target.x) }.any { amps[it]!!.type() != amp.type() }
                     ) continue // don't go in your house when stranger inside
-                    if (target.y == 2 && Point(3, target.x) !in amps) continue // don't stop in first room, go further if possible
-                    if (target.y == 2 && pos.y == 3) continue // don't wander in house
-                    if (pos.y == 3 && pos.x == amp.col()) continue // don't go outside if on good position
+                    if (target.x == pos.x && pos.y >= 2) continue // don't wander in house
+                    if (pos.y >= 2 &&
+                        pos.x == amp.col() &&
+                        ((pos.y + 1)..height).map { Point(it, pos.x) }.all { amps[it]!!.type() == amp.type() }
+                    ) { // don't go outside if on good position
+                        continue
+                    }
                     goodMoves.add(target)
+                }
+                if (goodMoves.any { it.y != 1 }) {
+                    goodMoves = goodMoves.filter { it.y != 1 }.toMutableSet()
                 }
 
                 for (target in goodMoves) {
                     val moveCost = amp.cost() * dist[target]!!
-                    if (log) {
+                    if (LOG) {
                         println("$amp from $pos to $target cost: $moveCost")
                     }
                     val newState = amps.minus(pos).toMutableMap().apply { put(target, amp) }
@@ -161,32 +178,35 @@ fun main() {
         return Pair(result, globHistory)
     }
 
-    fun part1(input: List<String>): Int {
+    fun printHistory(history: List<AmpsState>, graph: Map<Point, MutableList<WeightedEdge>>) {
+        println("Best history:")
+        for (h in history) {
+            println(printState(h, graph))
+        }
+    }
+
+    fun part1(input: List<String>, showResult: Boolean = false): Int {
         val burrow = parseInput(input)
         val (result, history) = simulate(burrow)
-        val printHistory = false
-        if (printHistory) {
-            println("Best history:")
-            for (h in history) {
-                println(printState(h))
-            }
-        }
+        if (showResult) printHistory(history, burrow.graph)
         return result
     }
 
-    fun part2(input: List<String>): Int {
-        val burrow = parseInput(input.slice(0..3) + "  #D#C#B#A#" + "  #D#B#A#C#" + input.slice(4..5))
-        return simulate(burrow).first
+    fun part2(input: List<String>, showResult: Boolean = false): Int {
+        val burrow = parseInput(input.slice(0..2) + "  #D#C#B#A#" + "  #D#B#A#C#" + input.slice(3..4))
+        val (result, history) = simulate(burrow)
+        if (showResult) printHistory(history, burrow.graph)
+        return result
     }
 
     val dayId = "23"
 
     // test if implementation meets criteria from the description, like:
     val testInput = readInput("Day${dayId}_test")
-    check(part1(testInput) == 12521)
-//    check(part2(testInput) == 44169)
+    check(part1(testInput, false) == 12521)
+    check(part2(testInput, false) == 44169)
 
     val input = readInput("Day${dayId}")
-    println(part1(input))
-//    println(part2(input))
+    println(part1(input, showResult = true))
+    println(part2(input, showResult = true))
 }
