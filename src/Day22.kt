@@ -1,68 +1,21 @@
-import kotlin.math.abs
+private const val LOG = false
+
+private fun log(message: String) {
+    if (LOG) {
+        println(message)
+    }
+}
 
 fun IntRange.intersect(other: IntRange): Boolean =
     (this.first <= other.last && this.first >= other.first) || (other.first <= this.last && other.last >= this.first)
 
-fun IntRange.isInside(other: IntRange): Boolean = this.first >= other.first && this.last <= other.last
-
 fun IntRange.contains(other: IntRange): Boolean {
-    return other.first <= other.last && other.first >= this.first && other.last <= this.last
-}
-
-fun IntRange.chooseSplitPlane(other: IntRange): Int? {
-    if (!this.intersect(other)) {
-        return null
-    }
-    if (this == other) {
-        return null
-    }
-    if (other.first != this.first && other.first in this) {
-        return other.first - 1
-    }
-    if (other.last != this.last && other.last in this) {
-        return other.last
-    }
-    if (other.first != this.first && this.first in other) {
-        return this.first - 1
-    }
-    if (other.last != this.last && this.last in this) {
-        return this.last
-    }
-    error("Can't find split for $this and $other")
-}
-
-fun IntRange.overlap(other: IntRange): Int {
-    if (this.isInside(other)) {
-        return this.length()
-    }
-    if (other.isInside(this)) {
-        return other.length()
-    }
-    return maxOf(0, minOf(this.last, other.last) - maxOf(this.first, other.first))
+    return other.first >= this.first && other.last <= this.last
 }
 
 fun IntRange.length(): Int = last - first + 1
 
 data class Cuboid(val x: IntRange, val y: IntRange, val z: IntRange) {
-    fun intersect(other: Cuboid?): Boolean {
-        if (other == null) return false
-        if (this.x.intersect(other.x) &&
-            this.y.intersect(other.y) &&
-            this.z.intersect(other.z)
-        ) {
-            return true
-        }
-        return false
-    }
-
-    fun intersectionVolume(other: Cuboid): Long {
-        if (!this.intersect(other)) return 0
-        val xOverlap = this.x.overlap(other.x).toLong()
-        val yOverlap = this.y.overlap(other.y).toLong()
-        val zOverlap = this.z.overlap(other.z).toLong()
-        return xOverlap * yOverlap * zOverlap
-    }
-
     fun volume(): Long {
         return x.length().toLong() * y.length().toLong() * z.length().toLong()
     }
@@ -107,21 +60,7 @@ data class Cuboid(val x: IntRange, val y: IntRange, val z: IntRange) {
         error("This hyperplane doesn't split cuboid")
     }
 
-    fun center() = Point3d((x.first + x.last) / 2, (y.first + y.last) / 2, (z.first + z.last) / 2)
-
-    fun distance(plane: HyperPlane): Int {
-        val center = center()
-        if (plane.x != null) {
-            return abs(plane.x - center.x)
-        }
-        if (plane.y != null) {
-            return abs(plane.y - center.y)
-        }
-        require(plane.z != null)
-        return abs(plane.z - center.z)
-    }
-
-    fun getAxes(): Set<HyperPlane> {
+    fun getPlanes(): Set<HyperPlane> {
         return setOf(
             HyperPlane(x = x.first - 1),
             HyperPlane(x = x.last),
@@ -153,17 +92,6 @@ data class HyperPlane(val x: Int? = null, val y: Int? = null, val z: Int? = null
     init {
         check(listOfNotNull(x, y, z).size == 1)
     }
-
-    fun getSide(p3: Point3d): Boolean {
-        if (x != null) {
-            return p3.x <= x
-        }
-        if (y != null) {
-            return p3.y <= y
-        }
-        require(z != null)
-        return p3.z <= z
-    }
 }
 
 class BSPTree(private val volume: Cuboid) {
@@ -173,11 +101,11 @@ class BSPTree(private val volume: Cuboid) {
     private var splittingPlane: HyperPlane? = null
 
     fun add(cuboidToAdd: Cuboid, stateToAdd: Boolean) {
-        println("Add $cuboidToAdd into $volume containing $cuboid")
+        log("Add $cuboidToAdd into $volume containing $cuboid")
         require(cuboidToAdd in volume)
         if (splittingPlane != null && subtrees != null) {
             val (c1, c2) = cuboidToAdd.split(splittingPlane!!)
-            println("Node already splitted propagate cuboid: $c1 $c2")
+            log("Node already splitted propagate cuboid: $c1 $c2")
             if (c1 != null) {
                 subtrees!!.first.add(c1, stateToAdd)
             }
@@ -189,7 +117,7 @@ class BSPTree(private val volume: Cuboid) {
         if (cuboid == null) {
             cuboid = cuboidToAdd
             state = stateToAdd
-            println("Cuboid set $cuboid in node: $volume")
+            log("Cuboid set $cuboid in node: $volume")
             return
         } else if (cuboidToAdd == cuboid) {
             state = stateToAdd
@@ -197,7 +125,7 @@ class BSPTree(private val volume: Cuboid) {
         }
         val plane = otherChooseSplitAxis(cuboidToAdd, cuboid!!)
         val (c1, c2) = volume.split(plane)
-        println("split needed: $volume into $c1 $c2 with $plane")
+        log("split needed: $volume into $c1 $c2 with $plane")
         val bsptree1 = BSPTree(c1!!)
         val bsptree2 = BSPTree(c2!!)
         for ((obj, objState) in listOf(
@@ -207,13 +135,9 @@ class BSPTree(private val volume: Cuboid) {
             val (o1, o2) = obj!!.split(plane)
             if (o1 != null) {
                 bsptree1.add(o1, objState)
-//                println("bsp tree 1 after add:")
-//                println(bsptree1.toString(0, 0))
             }
             if (o2 != null) {
                 bsptree2.add(o2, objState)
-//                println("bsp tree 2 after add:")
-//                println(bsptree2.toString(0, 0))
             }
         }
         state = null
@@ -223,11 +147,11 @@ class BSPTree(private val volume: Cuboid) {
     }
 
     private fun otherChooseSplitAxis(c1: Cuboid, c2: Cuboid): HyperPlane {
-        val outerAxis = c1.add(c2).getAxes()
-        val c1Axes = c1.getAxes().filter { it !in outerAxis }
-        val c2Axes = c2.getAxes().filter { it !in outerAxis }
-        val best = (c1Axes + c2Axes).first()
-        println("best $c1 and $c2 plane is $best")
+        val outerPlanes = c1.add(c2).getPlanes()
+        val c1Planes = c1.getPlanes().filter { it !in outerPlanes }
+        val c2Planes = c2.getPlanes().filter { it !in outerPlanes }
+        val best = (c1Planes + c2Planes).first()
+        log("best $c1 and $c2 splitting plane is $best")
         return best
     }
 
@@ -238,13 +162,12 @@ class BSPTree(private val volume: Cuboid) {
         return 1
     }
 
-    fun toString(z: Int, id: Int, arr: Array<IntArray>? = null): String {
+    fun sliceToString(z: Int, id: Int, arr: Array<IntArray>? = null): String {
         val backgrounds = listOf('.', ',', '"', ';', ':', '-', '+')
         if (subtrees != null) {
             val rightId = id + subtrees!!.first.countNodes() + 2
-//            println("id: $id, c: $cuboid, v: $volume, first: ${id+1}, second: $rightId")
-            val sub1 = subtrees!!.first.toString(z, id + 1, arr)
-            val sub2 = subtrees!!.second.toString(z, rightId, arr)
+            val sub1 = subtrees!!.first.sliceToString(z, id + 1, arr)
+            val sub2 = subtrees!!.second.sliceToString(z, rightId, arr)
 
             return if (splittingPlane!!.x != null) { // x join
                 sub1.split("\n").zip(sub2.split("\n")) { s1, s2 -> "$s1$s2" }.joinToString("\n")
@@ -306,8 +229,9 @@ fun main() {
             if (step.x.first >= -size && step.x.last <= size &&
                 step.y.first >= -size && step.y.last <= size &&
                 step.z.first >= -size && step.z.last <= size
-            )
+            ) {
                 mark(reactor, state.toInt(), step)
+            }
         }
         return reactor.values.count { it == 1 }
     }
@@ -325,14 +249,8 @@ fun main() {
     fun part2(steps: List<Pair<Boolean, Cuboid>>): Long {
         val root = calcRootSize(steps)
         val tree = BSPTree(root)
-        val size = 50
         for ((state, step) in steps) {
-//            if (step.x.first >= -size && step.x.last <= size &&
-//                step.y.first >= -size && step.y.last <= size &&
-//                step.z.first >= -size && step.z.last <= size
-//            ) {
             tree.add(step, state)
-//            }
         }
         return tree.countBits()
     }
@@ -340,35 +258,25 @@ fun main() {
     val dayId = "22"
 
     // test if implementation meets criteria from the description, like:
-
     val root = BSPTree(Cuboid(0..10, 0..10, 0..0))
-    println(root.toString(0, 0))
     root.add(Cuboid(1..3, 2..4, 0..0), true)
-    println(root.toString(0, 0))
     root.add(Cuboid(4..7, 2..4, 0..0), true)
-    println(root.toString(0, 0))
     root.add(Cuboid(4..7, 3..8, 0..0), true)
-    println(root.toString(0, 0))
     root.add(Cuboid(7..8, 3..4, 0..0), true)
-    println(root.toString(0, 0))
     root.add(Cuboid(5..6, 7..8, 0..0), false)
-    println(root.toString(0, 0))
-//    println(root.toString(0, 0))
+    log(root.sliceToString(0, 0))
 
-//    val b = part2(testInput)
-//    check((0..5).intersect(4..7))
-//    check((5..8).intersect(1..5))
-//    check(!(1..2).intersect(3..4))
-//    check((0..5).overlap(2..8) == 3)
-//    check((0..5).overlap(11..15) == 0)
-//    check(Cuboid(2..4, 5..7, 4..6).volume() == 27L)
+    check((0..5).intersect(4..7))
+    check((5..8).intersect(1..5))
+    check(!(1..2).intersect(3..4))
+    check(Cuboid(2..4, 5..7, 4..6).volume() == 27L)
 
     val testInput1 = parseInput(readInput("Day${dayId}_test1"))
     check(part1(testInput1) == 590784)
 
     val testInput2 = parseInput(readInput("Day${dayId}_test2"))
     check(part2(testInput2) == 2758514936282235L)
-//
+
     val input = parseInput(readInput("Day${dayId}"))
     println(part1(input))
     println(part2(input))
