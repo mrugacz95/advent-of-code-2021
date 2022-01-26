@@ -1,4 +1,9 @@
+import com.google.gson.Gson
+import com.google.gson.annotations.Expose
+import java.io.File
+
 private const val LOG = false
+private const val PRODUCE_ANIMATION_DATA = false
 
 private fun log(message: String) {
     if (LOG) {
@@ -94,11 +99,13 @@ data class HyperPlane(val x: Int? = null, val y: Int? = null, val z: Int? = null
     }
 }
 
-class BSPTree(private val volume: Cuboid) {
+data class BSPTree(private val volume: Cuboid) {
     private var state: Boolean? = null
     private var cuboid: Cuboid? = null
-    private var subtrees: Pair<BSPTree, BSPTree>? = null
-    private var splittingPlane: HyperPlane? = null
+
+    @Expose
+    var subtrees: List<BSPTree>? = null
+    var splittingPlane: HyperPlane? = null
 
     fun add(cuboidToAdd: Cuboid, stateToAdd: Boolean) {
         log("Add $cuboidToAdd into $volume containing $cuboid")
@@ -107,10 +114,10 @@ class BSPTree(private val volume: Cuboid) {
             val (c1, c2) = cuboidToAdd.split(splittingPlane!!)
             log("Node already splitted propagate cuboid: $c1 $c2")
             if (c1 != null) {
-                subtrees!!.first.add(c1, stateToAdd)
+                subtrees!![0].add(c1, stateToAdd)
             }
             if (c2 != null) {
-                subtrees!!.second.add(c2, stateToAdd)
+                subtrees!![1].add(c2, stateToAdd)
             }
             return
         }
@@ -142,7 +149,7 @@ class BSPTree(private val volume: Cuboid) {
         }
         state = null
         cuboid = null
-        subtrees = Pair(bsptree1, bsptree2)
+        subtrees = listOf(bsptree1, bsptree2)
         splittingPlane = plane
     }
 
@@ -155,9 +162,9 @@ class BSPTree(private val volume: Cuboid) {
         return best
     }
 
-    private fun countNodes(): Int {
+    fun countNodes(): Int {
         if (subtrees != null) {
-            return subtrees!!.first.countNodes() + subtrees!!.second.countNodes()
+            return subtrees!![0].countNodes() + subtrees!![1].countNodes()
         }
         return 1
     }
@@ -165,9 +172,9 @@ class BSPTree(private val volume: Cuboid) {
     fun sliceToString(z: Int, id: Int, arr: Array<IntArray>? = null): String {
         val backgrounds = listOf('.', ',', '"', ';', ':', '-', '+')
         if (subtrees != null) {
-            val rightId = id + subtrees!!.first.countNodes() + 2
-            val sub1 = subtrees!!.first.sliceToString(z, id + 1, arr)
-            val sub2 = subtrees!!.second.sliceToString(z, rightId, arr)
+            val rightId = id + subtrees!![0].countNodes() + 2
+            val sub1 = subtrees!![0].sliceToString(z, id + 1, arr)
+            val sub2 = subtrees!![1].sliceToString(z, rightId, arr)
 
             return if (splittingPlane!!.x != null) { // x join
                 sub1.split("\n").zip(sub2.split("\n")) { s1, s2 -> "$s1$s2" }.joinToString("\n")
@@ -193,7 +200,7 @@ class BSPTree(private val volume: Cuboid) {
         if (splittingPlane == null) {
             return state!!.toInt() * cuboid!!.volume()
         }
-        return subtrees?.first!!.countBits() + subtrees?.second!!.countBits()
+        return subtrees!![0].countBits() + subtrees!![1].countBits()
     }
 }
 
@@ -247,10 +254,18 @@ fun main() {
     }
 
     fun part2(steps: List<Pair<Boolean, Cuboid>>): Long {
-        val root = calcRootSize(steps)
+        val gson = Gson()
+        val take = steps.size
+        val root = calcRootSize(steps.take(take))
         val tree = BSPTree(root)
-        for ((state, step) in steps) {
+        var count = 0
+        for ((state, step) in steps.take(take)) {
+            count += 1
             tree.add(step, state)
+        }
+        if(PRODUCE_ANIMATION_DATA) {
+            val file = File("src", "day22.json")
+            file.writeText(gson.toJson(tree))
         }
         return tree.countBits()
     }
