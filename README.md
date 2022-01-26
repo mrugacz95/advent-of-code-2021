@@ -40,6 +40,17 @@ Number of lines: **2913**
 |   2 |   01:39:50 |  19258 |      0 |   01:47:31 |  18504 |      0 |
 |   1 |   02:05:48 |  14965 |      0 |   02:17:49 |  13702 |      0 |
 
+# Visualizations
+
+Day 14:
+
+![day14](https://user-images.githubusercontent.com/12548284/151246594-857900fa-be16-421a-a103-5a9d6579eec6.gif)
+
+Day 22 ([full gif](https://www.reddit.com/r/adventofcode/comments/rqq8gi/2021_day_22_part_2_reactor_leftovers_after_cut_out/)):
+
+<img width="881" alt="day22" src="https://user-images.githubusercontent.com/12548284/151246626-011572a1-1c70-480a-87b5-78b1d219b141.png">
+
+
 [^aoc]:
     [Advent of Code][aoc] – an annual event in December since 2015.
     Every year since then, with the first day of December, a programming puzzles contest is published every day for twenty-four days.
